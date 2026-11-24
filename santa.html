@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Christmas dinner: Secret Santa</title>
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --surface: #fffdf9;
+    --ink: #1c2a23;
+    --muted: #5d6a62;
+    --line: #dcd4c4;
+    --green: #1f6b47;
+    --on-green: #ffffff;
+    --amber: #96600f;
+    --amber-soft: #fbeecb;
+    --red: #a3261d;
+    --focus: #1a73e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111714;
+      --surface: #1a231f;
+      --ink: #eef2ee;
+      --muted: #a5b1aa;
+      --line: #34413b;
+      --green: #5cc391;
+      --on-green: #0c1a13;
+      --amber: #e6b655;
+      --amber-soft: #40351a;
+      --red: #ff9a8f;
+      --focus: #8ab4f8;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 16px 14px 48px; }
+  .nav { margin: 0; font-size: 14.5px; }
+  .nav a { color: var(--muted); }
+  header { text-align: center; padding: 14px 0 4px; }
+  .eyebrow {
+    margin: 0 0 6px;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--red);
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(30px, 8vw, 42px); line-height: 1.15; font-weight: 700;
+  }
+  .lead { margin: 0 auto; max-width: 42ch; color: var(--muted); }
+  .banner {
+    margin: 16px 0 0; padding: 10px 14px; border-radius: 12px;
+    background: var(--amber-soft); border: 1px dashed var(--amber); font-size: 14px;
+  }
+  .card {
+    margin-top: 18px; padding: 20px 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  }
+  h2 { margin: 0 0 4px; font-size: 19px; overflow-wrap: anywhere; }
+  .hint { margin: 0 0 14px; color: var(--muted); font-size: 14.5px; }
+  .small { margin: 6px 0 0; font-size: 13px; }
+  .people { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+  label { display: block; margin: 14px 0 6px; font-weight: 600; font-size: 15px; }
+  .hint + label { margin-top: 0; }
+  input[type="text"], input[type="password"], textarea {
+    width: 100%; padding: 11px 12px;
+    font: inherit; color: inherit; background: var(--bg);
+    border: 1.5px solid var(--line); border-radius: 10px;
+  }
+  textarea { min-height: 88px; resize: vertical; }
+  .check {
+    display: flex; align-items: center; gap: 8px; margin: 8px 0 0;
+    font-weight: 400; font-size: 14.5px; color: var(--muted);
+  }
+  .check input { width: 18px; height: 18px; margin: 0; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+    outline: 3px solid var(--focus); outline-offset: 2px;
+  }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 16px; }
+  .primary {
+    padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer;
+    color: var(--on-green); background: var(--green); border: 0; border-radius: 999px;
+    touch-action: manipulation;
+  }
+  .primary:disabled, .textbtn:disabled { opacity: .55; cursor: default; }
+  .textbtn {
+    padding: 6px 2px; font: inherit; font-size: 14.5px; cursor: pointer;
+    color: var(--muted); background: none; border: 0; text-decoration: underline;
+  }
+  .status { margin: 12px 0 0; min-height: 22px; font-size: 14.5px; }
+  .status.ok { color: var(--green); font-weight: 600; }
+  .status.error { color: var(--red); font-weight: 600; }
+
+  .reveal {
+    margin: 2px 0 4px; padding: 18px 14px; text-align: center;
+    background: var(--bg); border: 1.5px dashed var(--red); border-radius: 14px;
+  }
+  .reveal-label {
+    margin: 0 0 12px;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--red);
+  }
+  .match-name {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 8vw, 38px); font-weight: 700; line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .wish { margin: 14px 0 0; text-align: left; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .wish strong { display: block; margin-bottom: 2px; }
+  footer { margin-top: 22px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="nav"><a href="./">&larr; Date poll for the dinner</a></p>
+
+  <header>
+    <p class="eyebrow">Christmas dinner</p>
+    <h1>Secret Santa</h1>
+    <p class="lead">Join in, we draw the names, and everyone gets one person to surprise with a small gift.</p>
+  </header>
+
+  <p class="banner" id="offline" hidden>This page is not connected yet.</p>
+
+  <section class="card" aria-labelledby="state-title">
+    <h2 id="state-title">Who is in</h2>
+    <p class="hint" id="state">Loading&hellip;</p>
+    <button type="button" class="textbtn" id="retry" hidden>Try again</button>
+    <p class="people" id="names" hidden></p>
+  </section>
+
+  <section class="card" id="auth" hidden aria-labelledby="auth-title">
+    <h2 id="auth-title">Join</h2>
+    <p class="hint" id="auth-hint"></p>
+
+    <label for="name">Your name</label>
+    <input type="text" id="name" maxlength="40" autocomplete="name" placeholder="First name and initial">
+
+    <label for="pin" id="pin-label">Choose a PIN (4 to 8 digits)</label>
+    <input type="password" id="pin" inputmode="numeric" maxlength="8" autocomplete="off">
+    <label class="check"><input type="checkbox" id="show-pin"> Show PIN</label>
+
+    <div id="wish-wrap">
+      <label for="wish">Gift ideas (optional)</label>
+      <textarea id="wish" maxlength="300" placeholder="Things you would like, sizes, things to avoid"></textarea>
+      <p class="hint small">Only the person who draws your name will see this. You can change it later.</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="primary" id="submit">Join the Secret Santa</button>
+      <button type="button" class="textbtn" id="switch">Already joined? Log in</button>
+    </div>
+    <p class="status" id="auth-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" id="member" hidden aria-labelledby="member-title">
+    <h2 id="member-title"></h2>
+    <p class="hint" id="member-hint"></p>
+
+    <div class="reveal" id="reveal" hidden>
+      <p class="reveal-label">You are Secret Santa for</p>
+      <button type="button" class="primary" id="show-match">Tap to reveal</button>
+      <p class="match-name" id="match-name" hidden></p>
+      <p class="wish" id="match-wish" hidden></p>
+    </div>
+
+    <label for="my-wish">Your gift ideas</label>
+    <textarea id="my-wish" maxlength="300" placeholder="Things you would like, sizes, things to avoid"></textarea>
+    <p class="hint small">Only the person who draws your name will see this.</p>
+
+    <div class="actions">
+      <button type="button" class="primary" id="save-wish">Save my gift ideas</button>
+      <button type="button" class="textbtn" id="logout">Log out</button>
+      <button type="button" class="textbtn" id="leave" hidden>Leave the Secret Santa</button>
+    </div>
+    <p class="status" id="member-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <footer>The list of who joined is visible to everyone who has this link. Who drew whom is not.</footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     Settings. API_URL is the Google Apps Script web app address
+     (it ends with /exec), the same one used by the date poll.
+     ------------------------------------------------------------------ */
+  var CONFIG = {
+    API_URL: 'https://script.google.com/macros/s/AKfycbxa3gKPzB4T4q2veu583Akxy4anp-9lhqV6BipjhSK2Z4Tx8DM4zlp5G-_7PPSQfwPbwg/exec',
+    KEY: 'christmas-dinner-2027'
+  };
+
+  var LIVE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(CONFIG.API_URL);
+  var PIN_PATTERN = /^[0-9]{4,8}$/;
+
+  /* ---------- small helpers ---------- */
+
+  function $(id) { return document.getElementById(id); }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = String(text);
+    return node;
+  }
+
+  var store = (function () {
+    var memory = {};
+    return {
+      get: function (key) {
+        try {
+          var value = window.localStorage.getItem(key);
+          if (value !== null) return value;
+        } catch (ignore) {}
+        return Object.prototype.hasOwnProperty.call(memory, key) ? memory[key] : null;
+      },
+      set: function (key, value) {
+        memory[key] = value;
+        try { window.localStorage.setItem(key, value); } catch (ignore) {}
+      }
+    };
+  })();
+
+  function cleanName(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function message(error) {
+    if (error && error.name === 'TypeError') return 'Could not reach the server. Check your connection and try again.';
+    return error && error.message ? error.message : 'Something went wrong. Please try again.';
+  }
+
+  /* ---------- state ---------- */
+
+  var state = null;       // { drawn, count, names } once loaded
+  var session = null;     // { name, pin } while logged in, kept in memory only
+  var me = null;          // { name, wishlist }
+  var match = null;       // { name, wishlist } once names are drawn
+  var mode = 'join';      // 'join' or 'login'
+  var revealed = false;
+  var busy = false;
+
+  /* ---------- server ---------- */
+
+  function api(method, payload) {
+    if (!LIVE) return Promise.reject(new Error('This page is not connected yet.'));
+    var request;
+    if (method === 'GET') {
+      request = fetch(CONFIG.API_URL + '?view=santa&t=' + Date.now(), { redirect: 'follow' });
+    } else {
+      // text/plain keeps this a "simple" request, which is what Apps Script web apps accept.
+      request = fetch(CONFIG.API_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    }
+    return request.then(function (response) {
+      if (!response.ok) throw new Error('The server answered with an error (' + response.status + ').');
+      return response.json();
+    }).then(function (data) {
+      if (!data || data.ok !== true || !Array.isArray(data.names)) {
+        throw new Error(data && data.error ? data.error : 'Unexpected answer from the server.');
+      }
+      return data;
+    });
+  }
+
+  function post(action, fields) {
+    var payload = { app: 'santa', action: action };
+    Object.keys(fields).forEach(function (key) { payload[key] = fields[key]; });
+    return api('POST', payload);
+  }
+
+  function applyState(data) {
+    state = { drawn: data.drawn === true, count: data.names.length, names: data.names };
+  }
+
+  /* ---------- rendering ---------- */
+
+  function setStatus(id, text, kind) {
+    var node = $(id);
+    node.textContent = text || '';
+    node.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function setBusy(value) {
+    busy = value;
+    ['submit', 'switch', 'save-wish', 'logout', 'leave'].forEach(function (id) { $(id).disabled = value; });
+  }
+
+  function render() {
+    if (!state) return;
+    var n = state.count;
+    $('state').textContent = state.drawn
+      ? 'Names have been drawn. Log in with your name and PIN to see who you got.'
+      : n === 0 ? 'Sign-ups are open. Nobody has joined yet: be the first!'
+      : 'Sign-ups are open. ' + (n === 1 ? '1 person is' : n + ' people are') + ' in so far.';
+    $('names').textContent = n ? state.names.join(', ') : '';
+    $('names').hidden = n === 0;
+
+    $('auth').hidden = !!session;
+    $('member').hidden = !session;
+    if (session) renderMember(); else renderAuth();
+  }
+
+  function renderAuth() {
+    if (state.drawn) mode = 'login';
+    var joining = mode === 'join';
+    $('auth-title').textContent = joining ? 'Join' : state.drawn ? 'See who you got' : 'Log in';
+    $('auth-hint').textContent = joining
+      ? 'Pick a name and a PIN. You will need both later to see who you got.'
+      : 'Enter the name and the PIN you joined with.';
+    $('pin-label').textContent = joining ? 'Choose a PIN (4 to 8 digits)' : 'Your PIN';
+    $('wish-wrap').hidden = !joining;
+    $('submit').textContent = joining ? 'Join the Secret Santa' : 'Log in';
+    $('switch').textContent = joining ? 'Already joined? Log in' : 'Not joined yet? Sign up';
+    $('switch').hidden = state.drawn;
+  }
+
+  function renderMember() {
+    $('member-title').textContent = 'Hi, ' + me.name;
+    $('member-hint').textContent = !state.drawn
+      ? 'You are in. Names have not been drawn yet: come back when the organiser tells you.'
+      : match ? 'Names have been drawn.'
+      : 'Names have been drawn, but your match could not be found. Please ask the organiser.';
+
+    var canReveal = state.drawn && !!match;
+    $('reveal').hidden = !canReveal;
+    $('show-match').hidden = !canReveal || revealed;
+    $('match-name').hidden = !canReveal || !revealed;
+    $('match-wish').hidden = !canReveal || !revealed;
+    $('match-name').textContent = canReveal && revealed ? match.name : '';
+    var box = $('match-wish');
+    box.textContent = '';
+    if (canReveal && revealed) {
+      box.appendChild(el('strong', null, match.wishlist ? 'Their gift ideas' : 'No gift ideas yet'));
+      box.appendChild(document.createTextNode(match.wishlist ||
+        'They have not written any gift ideas. Log in again later to check.'));
+    }
+    $('leave').hidden = state.drawn;
+  }
+
+  /* ---------- actions ---------- */
+
+  function loadState() {
+    $('state').textContent = 'Loading…';
+    $('retry').hidden = true;
+    return api('GET').then(function (data) {
+      applyState(data);
+      render();
+    }).catch(function (error) {
+      $('state').textContent = LIVE ? 'Could not load the page. Check your connection.' : message(error);
+      $('retry').hidden = !LIVE;
+    });
+  }
+
+  function refreshQuietly() {
+    return api('GET').then(function (data) {
+      applyState(data);
+      render();
+    }).catch(function () {});
+  }
+
+  function submit() {
+    if (busy || !state) return;
+    var joining = mode === 'join';
+    var name = cleanName($('name').value);
+    var pin = String($('pin').value || '').trim();
+    if (!name) {
+      setStatus('auth-status', 'Please enter your name.', 'error');
+      $('name').focus();
+      return;
+    }
+    if (!PIN_PATTERN.test(pin)) {
+      setStatus('auth-status', 'The PIN must be 4 to 8 digits.', 'error');
+      $('pin').focus();
+      return;
+    }
+    var fields = { name: name, pin: pin };
+    if (joining) fields.wishlist = $('wish').value;
+
+    setBusy(true);
+    setStatus('auth-status', joining ? 'Joining…' : 'Logging in…');
+    post(joining ? 'join' : 'login', fields).then(function (data) {
+      if (!data.me) throw new Error('Unexpected answer from the server.');
+      applyState(data);
+      session = { name: data.me.name, pin: pin };
+      me = data.me;
+      match = data.match || null;
+      revealed = false;
+      store.set(CONFIG.KEY + ':santa-name', me.name);
+      $('pin').value = '';
+      $('wish').value = '';
+      $('my-wish').value = me.wishlist || '';
+      setStatus('auth-status', '');
+      render();
+      setStatus('member-status', joining
+        ? 'You are in! Remember your PIN: you will need it to see who you got.' : '', joining ? 'ok' : '');
+    }).catch(function (error) {
+      setStatus('auth-status', message(error), 'error');
+      refreshQuietly();
+    }).then(function () { setBusy(false); });
+  }
+
+  function saveWish() {
+    if (busy || !session) return;
+    setBusy(true);
+    setStatus('member-status', 'Saving…');
+    post('wishlist', { name: session.name, pin: session.pin, wishlist: $('my-wish').value }).then(function (data) {
+      if (!data.me) throw new Error('Unexpected answer from the server.');
+      applyState(data);
+      me = data.me;
+      match = data.match || null;
+      $('my-wish').value = me.wishlist || '';
+      render();
+      setStatus('member-status', 'Saved.', 'ok');
+    }).catch(function (error) {
+      setStatus('member-status', message(error), 'error');
+    }).then(function () { setBusy(false); });
+  }
+
+  // Forgets everything about the logged-in person, so nothing private stays in the page.
+  function endSession(nextMode) {
+    session = null;
+    me = null;
+    match = null;
+    revealed = false;
+    mode = nextMode;
+    $('my-wish').value = '';
+    $('member-title').textContent = '';
+    $('match-name').textContent = '';
+    $('match-wish').textContent = '';
+    setStatus('member-status', '');
+  }
+
+  function logout() {
+    if (busy) return;
+    endSession('login');
+    setStatus('auth-status', '');
+    render();
+  }
+
+  function leave() {
+    if (busy || !session) return;
+    if (!window.confirm('Leave the Secret Santa? Your name and gift ideas will be removed.')) return;
+    setBusy(true);
+    setStatus('member-status', 'Leaving…');
+    post('leave', { name: session.name, pin: session.pin }).then(function (data) {
+      applyState(data);
+      endSession('join');
+      render();
+      setStatus('auth-status', 'You have left the Secret Santa.', 'ok');
+    }).catch(function (error) {
+      setStatus('member-status', message(error), 'error');
+    }).then(function () { setBusy(false); });
+  }
+
+  /* ---------- start ---------- */
+
+  $('offline').hidden = LIVE;
+
+  var savedName = store.get(CONFIG.KEY + ':santa-name');
+  if (savedName) {
+    $('name').value = savedName;
+    mode = 'login';
+  }
+
+  $('submit').addEventListener('click', submit);
+  $('switch').addEventListener('click', function () {
+    if (busy || !state || state.drawn) return;
+    mode = mode === 'join' ? 'login' : 'join';
+    setStatus('auth-status', '');
+    render();
+  });
+  $('show-pin').addEventListener('change', function () {
+    $('pin').type = $('show-pin').checked ? 'text' : 'password';
+  });
+  ['name', 'pin'].forEach(function (id) {
+    $(id).addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') submit();
+    });
+  });
+  $('show-match').addEventListener('click', function () {
+    if (!session || !match) return;
+    revealed = true;
+    render();
+  });
+  $('save-wish').addEventListener('click', saveWish);
+  $('logout').addEventListener('click', logout);
+  $('leave').addEventListener('click', leave);
+  $('retry').addEventListener('click', loadState);
+
+  loadState();
+})();
+</script>
+</body>
+</html>
