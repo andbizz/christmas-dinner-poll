@@ -120,8 +120,42 @@
   }
   .wish { margin: 14px 0 0; text-align: left; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
   .wish strong { display: block; margin-bottom: 2px; }
+
+  .gift { width: 104px; margin: 0 auto 12px; transition: width .5s .3s; }
+  .gift svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .gift-lid {
+    transform-box: fill-box; transform-origin: 50% 100%;
+    transition: transform .7s cubic-bezier(.2, .8, .2, 1), opacity .5s .25s;
+  }
+  .gift.open { width: 76px; }
+  .gift.open .gift-lid { transform: translateY(-34px) rotate(-22deg); opacity: 0; }
+  .match-name { animation: pop .55s .25s both; }
+  @keyframes pop {
+    from { transform: scale(.55); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gift, .gift-lid { transition: none; }
+    .match-name { animation: none; }
+  }
+
+  .chain { margin: 0; padding: 0; list-style: none; }
+  .chain li {
+    position: relative; display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    margin: 0 0 24px; padding: 9px 12px; background: var(--bg); border-radius: 10px;
+  }
+  .chain li::after {
+    content: "\2193"; position: absolute; left: 50%; bottom: -22px; transform: translateX(-50%);
+    color: var(--red); font-weight: 700; line-height: 1;
+  }
+  .chain li:last-child { margin-bottom: 0; }
+  .chain li:last-child::after { content: none; }
+  .chain .case { font-weight: 700; overflow-wrap: anywhere; }
+  .chain .gen { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .chain-loop { margin: 12px 0 0; font-size: 14px; color: var(--muted); text-align: center; }
   footer { margin-top: 22px; text-align: center; color: var(--muted); font-size: 13px; }
 </style>
+<link rel="stylesheet" href="festive.css">
 </head>
 <body>
 <main>
@@ -141,6 +175,13 @@
     <p class="hint" id="state">Loading&hellip;</p>
     <button type="button" class="textbtn" id="retry" hidden>Try again</button>
     <p class="people" id="names" hidden></p>
+  </section>
+
+  <section class="card" id="chain-card" hidden aria-labelledby="chain-title">
+    <h2 id="chain-title">The transmission chain</h2>
+    <p class="hint" id="chain-hint"></p>
+    <ol class="chain" id="chain"></ol>
+    <p class="chain-loop" id="chain-loop"></p>
   </section>
 
   <section class="card" id="auth" hidden aria-labelledby="auth-title">
@@ -173,7 +214,20 @@
 
     <div class="reveal" id="reveal" hidden>
       <p class="reveal-label">You are Secret Santa for</p>
-      <button type="button" class="primary" id="show-match">Tap to reveal</button>
+      <div class="gift" id="gift" aria-hidden="true">
+        <svg viewBox="0 0 120 112" focusable="false">
+          <rect x="20" y="52" width="80" height="54" rx="5" fill="#c62828"/>
+          <rect x="52" y="52" width="16" height="54" fill="#e3b23c"/>
+          <g class="gift-lid">
+            <path d="M60 28 C50 6 28 8 33 23 C36 33 52 31 60 28 Z" fill="#e3b23c"/>
+            <path d="M60 28 C70 6 92 8 87 23 C84 33 68 31 60 28 Z" fill="#e3b23c"/>
+            <circle cx="60" cy="27" r="6.5" fill="#c9972a"/>
+            <rect x="13" y="32" width="94" height="22" rx="5" fill="#a3261d"/>
+            <rect x="52" y="32" width="16" height="22" fill="#e3b23c"/>
+          </g>
+        </svg>
+      </div>
+      <button type="button" class="primary" id="show-match">Tap to unwrap</button>
       <p class="match-name" id="match-name" hidden></p>
       <p class="wish" id="match-wish" hidden></p>
     </div>
@@ -190,9 +244,10 @@
     <p class="status" id="member-status" role="status" aria-live="polite"></p>
   </section>
 
-  <footer>The list of who joined is visible to everyone who has this link. Who drew whom is not.</footer>
+  <footer>The list of who joined is visible to everyone who has this link. Who drew whom stays secret until the organiser reveals the whole chain after the dinner.</footer>
 </main>
 
+<script src="festive.js"></script>
 <script>
 (function () {
   'use strict';
@@ -252,6 +307,7 @@
   var session = null;     // { name, pin } while logged in, kept in memory only
   var me = null;          // { name, wishlist }
   var match = null;       // { name, wishlist } once names are drawn
+  var chain = null;       // [name, name, ...] once the organiser reveals who gave to whom
   var mode = 'join';      // 'join' or 'login'
   var revealed = false;
   var busy = false;
@@ -291,6 +347,8 @@
 
   function applyState(data) {
     state = { drawn: data.drawn === true, count: data.names.length, names: data.names };
+    if (Array.isArray(data.chain)) chain = data.chain;
+    else if (data.chain === null || !state.drawn) chain = null;
   }
 
   /* ---------- rendering ---------- */
@@ -315,10 +373,29 @@
       : 'Sign-ups are open. ' + (n === 1 ? '1 person is' : n + ' people are') + ' in so far.';
     $('names').textContent = n ? state.names.join(', ') : '';
     $('names').hidden = n === 0;
+    renderChain();
 
     $('auth').hidden = !!session;
     $('member').hidden = !session;
     if (session) renderMember(); else renderAuth();
+  }
+
+  function renderChain() {
+    var list = $('chain');
+    var show = !!(chain && chain.length > 1);
+    list.textContent = '';
+    $('chain-card').hidden = !show;
+    if (!show) return;
+    $('chain-hint').textContent = chain.length +
+      ' cases, and every Santa infected exactly one person with a gift: R = 1.';
+    chain.forEach(function (name, index) {
+      var item = el('li');
+      item.appendChild(el('span', 'case', name));
+      item.appendChild(el('span', 'gen', index === 0 ? 'index case' : 'generation ' + index));
+      list.appendChild(item);
+    });
+    $('chain-loop').textContent = chain[chain.length - 1] + ' then gave to ' + chain[0] +
+      ', which closes the loop.';
   }
 
   function renderAuth() {
@@ -344,6 +421,7 @@
 
     var canReveal = state.drawn && !!match;
     $('reveal').hidden = !canReveal;
+    $('gift').classList.toggle('open', canReveal && revealed);
     $('show-match').hidden = !canReveal || revealed;
     $('match-name').hidden = !canReveal || !revealed;
     $('match-wish').hidden = !canReveal || !revealed;
@@ -366,6 +444,7 @@
     return api('GET').then(function (data) {
       applyState(data);
       render();
+      if (window.Festive) window.Festive.setDeadline(data.deadline);
     }).catch(function (error) {
       $('state').textContent = LIVE ? 'Could not load the page. Check your connection.' : message(error);
       $('retry').hidden = !LIVE;
@@ -414,6 +493,7 @@
       render();
       setStatus('member-status', joining
         ? 'You are in! Remember your PIN: you will need it to see who you got.' : '', joining ? 'ok' : '');
+      if (joining && window.Festive) window.Festive.sleigh();
     }).catch(function (error) {
       setStatus('auth-status', message(error), 'error');
       refreshQuietly();

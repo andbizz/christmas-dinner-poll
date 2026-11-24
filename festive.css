@@ -1,0 +1,49 @@
+/* Shared festive layer: links between the pages, snow, Santa's sleigh, deadline. */
+
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
+  margin: 0 0 4px; font-size: 14px;
+}
+.topbar a { padding: 4px 0; color: var(--muted); text-decoration: none; }
+.topbar a:hover { text-decoration: underline; }
+.topbar a[aria-current="page"] {
+  color: var(--ink); font-weight: 700;
+  text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px;
+}
+.topbar .spacer { flex: 1 1 auto; }
+.snow-toggle {
+  padding: 4px 11px; font: inherit; font-size: 13px; cursor: pointer;
+  color: var(--muted); background: none; border: 1.5px solid var(--line); border-radius: 999px;
+}
+.snow-toggle[aria-pressed="true"] { color: var(--ink); border-color: var(--muted); }
+.topbar a:focus-visible, .snow-toggle:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.deadline {
+  display: inline-block; margin: 12px 0 0; padding: 6px 14px;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  background: var(--amber-soft); border: 1px solid var(--amber); border-radius: 999px;
+}
+.deadline.past { font-weight: 400; color: var(--muted); background: none; border-color: var(--line); }
+
+.snow {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 50;
+}
+
+.sleigh {
+  position: fixed; left: 0; top: 14vh; width: min(70vw, 320px);
+  pointer-events: none; z-index: 60;
+  animation: sleigh-fly 4.6s linear forwards;
+}
+.sleigh svg { display: block; width: 100%; height: auto; animation: sleigh-bob .9s ease-in-out infinite alternate; }
+@keyframes sleigh-fly {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(calc(100vw + 20px)); }
+}
+@keyframes sleigh-bob {
+  from { transform: translateY(-7px) rotate(-4deg); }
+  to { transform: translateY(7px) rotate(-1deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sleigh { display: none; }
+}

@@ -72,6 +72,8 @@
   h3 { margin: 0 0 6px; font-size: 16px; }
   .hint { margin: 0 0 14px; color: var(--muted); font-size: 14.5px; }
   label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 15px; }
+  label.gap { margin-top: 14px; }
+  .note { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
   input[type="text"] {
     width: 100%; padding: 11px 12px;
     font: inherit; color: inherit; background: var(--bg);
@@ -158,6 +160,7 @@
     .day .tag { font-size: 10px; }
   }
 </style>
+<link rel="stylesheet" href="festive.css">
 </head>
 <body>
 <main>
@@ -176,6 +179,10 @@
 
     <label for="name">Your name</label>
     <input type="text" id="name" maxlength="40" autocomplete="name" placeholder="Prénom">
+
+    <label for="diet" class="gap">Allergies or dietary needs (optional)</label>
+    <input type="text" id="diet" maxlength="120" autocomplete="off" placeholder="e.g. vegetarian, no nuts">
+    <p class="note">Only the organiser sees this.</p>
 
     <div class="month">
       <span id="vote-month"></span>
@@ -219,6 +226,7 @@
   <footer>Names and answers are visible to everyone who has this link.</footer>
 </main>
 
+<script src="festive.js"></script>
 <script>
 (function () {
   'use strict';
@@ -371,7 +379,8 @@
           if (payload.action === 'delete') {
             if (index >= 0) mockRows.splice(index, 1);
           } else {
-            var row = { id: payload.id, name: payload.name, votes: JSON.parse(JSON.stringify(payload.votes)) };
+            var row = { id: payload.id, name: payload.name, votes: JSON.parse(JSON.stringify(payload.votes)),
+              diet: payload.diet || '' };
             if (index >= 0) mockRows[index] = row; else mockRows.push(row);
           }
         }
@@ -379,7 +388,10 @@
           ok: true,
           responses: mockRows.map(function (row) {
             var item = { name: row.name, votes: row.votes };
-            if (row.id === myId) item.mine = true;
+            if (row.id === myId) {
+              item.mine = true;
+              item.diet = row.diet || '';
+            }
             return item;
           })
         });
@@ -618,11 +630,13 @@
             if (mine.votes[iso] === 'yes' || mine.votes[iso] === 'maybe') myVotes[iso] = mine.votes[iso];
           });
           if (!cleanName($('name').value)) $('name').value = mine.name;
+          $('diet').value = mine.diet || '';
           paintVotes();
         }
       }
       paintButtons();
       applyResponses(data.responses);
+      if (window.Festive) window.Festive.setDeadline(data.deadline);
     }).catch(function () {
       $('count').textContent = 'Could not load the answers. Check your connection.';
       $('retry').hidden = false;
@@ -652,12 +666,14 @@
 
     setBusy(true);
     setStatus('Saving…');
-    api('POST', { action: 'save', id: myId, name: name, votes: votes }).then(function (data) {
+    var diet = cleanName($('diet').value);
+    api('POST', { action: 'save', id: myId, name: name, votes: votes, diet: diet }).then(function (data) {
       dirty = false;
       hasSaved = true;
       store.set(CONFIG.KEY + ':name', name);
       paintButtons();
       applyResponses(data.responses);
+      if (window.Festive) window.Festive.sleigh();
       var count = Object.keys(votes).length;
       setStatus('Saved, thank you ' + name + '! ' +
         (count ? 'You picked ' + count + (count === 1 ? ' date. ' : ' dates. ') : 'You picked no dates. ') +
@@ -675,6 +691,7 @@
     setStatus('Removing…');
     api('POST', { action: 'delete', id: myId }).then(function (data) {
       myVotes = {};
+      $('diet').value = '';
       dirty = false;
       hasSaved = false;
       paintVotes();
@@ -710,6 +727,10 @@
   $('retry').addEventListener('click', load);
   $('name').addEventListener('keydown', function (event) {
     if (event.key === 'Enter') save();
+  });
+  $('diet').addEventListener('input', function () {
+    dirty = true;
+    setStatus('Not saved yet. Press “' + $('save').textContent + '” when you are done.', 'warn');
   });
   window.addEventListener('beforeunload', function (event) {
     if (!dirty) return;
