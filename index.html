@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Christmas dinner: when are you free?</title>
+<style>
+  :root {
+    --bg: #f6f1e7;
+    --surface: #fffdf9;
+    --ink: #1c2a23;
+    --muted: #5d6a62;
+    --line: #dcd4c4;
+    --weekend: #f3ecdd;
+    --green: #1f6b47;
+    --on-green: #ffffff;
+    --amber: #96600f;
+    --amber-soft: #fbeecb;
+    --red: #a3261d;
+    --focus: #1a73e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111714;
+      --surface: #1a231f;
+      --ink: #eef2ee;
+      --muted: #a5b1aa;
+      --line: #34413b;
+      --weekend: #202b26;
+      --green: #5cc391;
+      --on-green: #0c1a13;
+      --amber: #e6b655;
+      --amber-soft: #40351a;
+      --red: #ff9a8f;
+      --focus: #8ab4f8;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 20px 14px 48px; }
+  header { text-align: center; padding: 14px 0 4px; }
+  .eyebrow {
+    margin: 0 0 6px;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--red);
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(27px, 6.4vw, 38px); line-height: 1.15; font-weight: 700;
+  }
+  .lead { margin: 0 auto; max-width: 44ch; color: var(--muted); }
+  .banner {
+    margin: 16px 0 0; padding: 10px 14px; border-radius: 12px;
+    background: var(--amber-soft); border: 1px dashed var(--amber); font-size: 14px;
+  }
+  .card {
+    margin-top: 18px; padding: 20px 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  }
+  h2 { margin: 0 0 4px; font-size: 19px; }
+  h3 { margin: 0 0 6px; font-size: 16px; }
+  .hint { margin: 0 0 14px; color: var(--muted); font-size: 14.5px; }
+  label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 15px; }
+  input[type="text"] {
+    width: 100%; padding: 11px 12px;
+    font: inherit; color: inherit; background: var(--bg);
+    border: 1.5px solid var(--line); border-radius: 10px;
+  }
+  .month {
+    margin: 18px 0 8px; font-weight: 700; font-size: 15px;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); font-weight: 400; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--surface); }
+  .swatch.yes { background: var(--green); border-color: var(--green); }
+  .swatch.maybe { background: var(--amber-soft); border-color: var(--amber); border-style: dashed; }
+
+  .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .day {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    min-height: 64px; padding: 6px 0 4px; margin: 0;
+    font: inherit; color: inherit; background: var(--surface);
+    border: 1.5px solid var(--line); border-radius: 10px;
+    cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none; appearance: none;
+  }
+  .day > span { position: relative; }
+  .day.weekend { background: var(--weekend); }
+  .day .wd { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .day .num { font-size: 20px; font-weight: 700; line-height: 1.1; }
+  .day .mon { font-size: 10px; color: var(--muted); line-height: 1; }
+  .day .tag { min-height: 14px; font-size: 10.5px; line-height: 14px; font-weight: 700; }
+  .day:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--focus); outline-offset: 2px;
+  }
+  .day.yes { background: var(--green); border-color: var(--green); color: var(--on-green); }
+  .day.yes .wd, .day.yes .mon { color: inherit; opacity: .85; }
+  .day.maybe { background: var(--amber-soft); border-color: var(--amber); border-style: dashed; }
+  .day.maybe .tag { color: var(--amber); }
+
+  .res::before {
+    content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+    background: var(--green); opacity: var(--heat, 0);
+  }
+  .res.hot { color: var(--on-green); }
+  .res.hot .wd, .res.hot .mon { color: inherit; opacity: .85; }
+  .res.best { border-color: var(--red); border-width: 2.5px; }
+  .res.sel { box-shadow: 0 0 0 2.5px var(--ink); border-color: var(--ink); }
+
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 16px; }
+  .primary {
+    padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer;
+    color: var(--on-green); background: var(--green); border: 0; border-radius: 999px;
+  }
+  .primary:disabled { opacity: .55; cursor: default; }
+  .textbtn {
+    padding: 6px 2px; font: inherit; font-size: 14.5px; cursor: pointer;
+    color: var(--muted); background: none; border: 0; text-decoration: underline;
+  }
+  .status { margin: 12px 0 0; min-height: 22px; font-size: 14.5px; }
+  .status.ok { color: var(--green); font-weight: 600; }
+  .status.error { color: var(--red); font-weight: 600; }
+  .status.warn { color: var(--amber); font-weight: 600; }
+
+  .top { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .top button {
+    width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    padding: 10px 12px; font: inherit; color: inherit; text-align: left; cursor: pointer;
+    background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px;
+  }
+  .top .when { font-weight: 700; }
+  .top .who { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .detail { margin-top: 14px; padding: 12px 14px; background: var(--bg); border-radius: 12px; font-size: 15px; }
+  .detail p { margin: 4px 0 0; }
+  .people { margin: 14px 0 0; font-size: 14.5px; color: var(--muted); }
+  footer { margin-top: 22px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 400px) {
+    main { padding: 14px 10px 40px; }
+    .card { padding: 16px 10px; }
+    .cal { gap: 4px; }
+    .day { min-height: 60px; border-radius: 8px; }
+    .day .wd { font-size: 10px; letter-spacing: .02em; }
+    .day .num { font-size: 18px; }
+    .day .tag { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow" id="range"></p>
+    <h1>Christmas dinner: when are you free?</h1>
+    <p class="lead">Pick every evening that works for you. We will go with the date that suits the most people.</p>
+  </header>
+
+  <p class="banner" id="demo" hidden>Preview mode: these are sample answers and nothing you enter is saved.</p>
+
+  <section class="card" aria-labelledby="vote-title">
+    <h2 id="vote-title">Your availability</h2>
+    <p class="hint">Tap a date once if you are free, twice for &ldquo;maybe&rdquo;, a third time to clear it. Then press Save.</p>
+
+    <label for="name">Your name</label>
+    <input type="text" id="name" maxlength="40" autocomplete="name" placeholder="First name and initial">
+
+    <div class="month">
+      <span id="vote-month"></span>
+      <span class="legend" aria-hidden="true">
+        <span><i class="swatch yes"></i>Free</span>
+        <span><i class="swatch maybe"></i>Maybe</span>
+        <span><i class="swatch"></i>Can't</span>
+      </span>
+    </div>
+    <div class="cal" id="vote-cal" role="group" aria-label="Your availability, date by date"></div>
+
+    <div class="actions">
+      <button type="button" class="primary" id="save">Save my answers</button>
+      <button type="button" class="textbtn" id="remove" hidden>Remove my answers</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" aria-labelledby="res-title">
+    <h2 id="res-title">Results so far</h2>
+    <p class="hint" id="count">Loading answers&hellip;</p>
+    <button type="button" class="textbtn" id="retry" hidden>Try again</button>
+
+    <div id="res-body" hidden>
+      <div id="top-wrap">
+        <h3>Best dates</h3>
+        <ol class="top" id="top"></ol>
+      </div>
+
+      <div class="month">
+        <span id="res-month"></span>
+        <span class="legend">Number = people free, +n = maybe. Tap a date for names.</span>
+      </div>
+      <div class="cal" id="res-cal" role="group" aria-label="Results, date by date"></div>
+
+      <div class="detail" id="detail" aria-live="polite"></div>
+      <p class="people" id="people"></p>
+    </div>
+  </section>
+
+  <footer>Names and answers are visible to everyone who has this link.</footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     Settings. API_URL is the Google Apps Script web app address
+     (it ends with /exec). Leave it empty to run in preview mode.
+     ------------------------------------------------------------------ */
+  var CONFIG = {
+    API_URL: 'https://script.google.com/macros/s/AKfycbxa3gKPzB4T4q2veu583Akxy4anp-9lhqV6BipjhSK2Z4Tx8DM4zlp5G-_7PPSQfwPbwg/exec',
+    START: '2027-01-04',
+    END: '2027-01-31',
+    KEY: 'christmas-dinner-2027'
+  };
+
+  var LIVE = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(CONFIG.API_URL);
+  var DAY_MS = 86400000;
+
+  /* ---------- dates (all in UTC so every visitor sees the same days) ---------- */
+
+  function buildDates(start, end) {
+    var out = [];
+    var t = Date.parse(start + 'T00:00:00Z');
+    var last = Date.parse(end + 'T00:00:00Z');
+    for (; t <= last; t += DAY_MS) out.push(new Date(t).toISOString().slice(0, 10));
+    return out;
+  }
+
+  function formatter(options) {
+    options.timeZone = 'UTC';
+    return new Intl.DateTimeFormat('en-GB', options);
+  }
+  var F = {
+    wd: formatter({ weekday: 'short' }),
+    wdLong: formatter({ weekday: 'long' }),
+    mon: formatter({ month: 'short' }),
+    monLong: formatter({ month: 'long' })
+  };
+
+  function info(iso) {
+    var d = new Date(iso + 'T00:00:00Z');
+    var day = d.getUTCDate();
+    return {
+      iso: iso,
+      dow: d.getUTCDay(),                         // 0 = Sunday
+      day: day,
+      year: d.getUTCFullYear(),
+      month: d.getUTCMonth(),
+      wd: F.wd.format(d),
+      short: F.wd.format(d) + ' ' + day + ' ' + F.mon.format(d),
+      long: F.wdLong.format(d) + ' ' + day + ' ' + F.monLong.format(d),
+      mon: F.mon.format(d),
+      monLong: F.monLong.format(d)
+    };
+  }
+
+  var DATES = buildDates(CONFIG.START, CONFIG.END);
+  var INFO = {};
+  DATES.forEach(function (iso) { INFO[iso] = info(iso); });
+  var FIRST = INFO[DATES[0]];
+  var LAST = INFO[DATES[DATES.length - 1]];
+  var ONE_MONTH = FIRST.month === LAST.month && FIRST.year === LAST.year;
+
+  /* ---------- small helpers ---------- */
+
+  function $(id) { return document.getElementById(id); }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = String(text);
+    return node;
+  }
+
+  var store = (function () {
+    var memory = {};
+    return {
+      get: function (key) {
+        try {
+          var value = window.localStorage.getItem(key);
+          if (value !== null) return value;
+        } catch (ignore) {}
+        return Object.prototype.hasOwnProperty.call(memory, key) ? memory[key] : null;
+      },
+      set: function (key, value) {
+        memory[key] = value;
+        try { window.localStorage.setItem(key, value); } catch (ignore) {}
+      }
+    };
+  })();
+
+  function newId() {
+    var c = window.crypto;
+    if (c && typeof c.randomUUID === 'function') return c.randomUUID();
+    var bytes = new Uint8Array(16);
+    if (c && c.getRandomValues) c.getRandomValues(bytes);
+    else for (var i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    var hex = Array.prototype.map.call(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+    return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+  }
+
+  function cleanName(value) {
+    return String(value || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function people(n) { return n === 1 ? '1 person' : n + ' people'; }
+
+  /* ---------- state ---------- */
+
+  var myId = store.get(CONFIG.KEY + ':id');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(myId || '')) {
+    myId = newId();
+    store.set(CONFIG.KEY + ':id', myId);
+  }
+  var myVotes = {};          // iso date -> 'yes' | 'maybe'
+  var responses = [];        // [{ name, votes, mine? }]
+  var loaded = false;
+  var dirty = false;
+  var hasSaved = false;
+  var busy = false;
+  var selected = null;
+
+  var voteCells = {};
+  var resCells = {};
+
+  /* ---------- server ---------- */
+
+  var mockRows = (function () {
+    function pick(offsets, maybes) {
+      var votes = {};
+      offsets.forEach(function (i) { if (DATES[i]) votes[DATES[i]] = 'yes'; });
+      (maybes || []).forEach(function (i) { if (DATES[i]) votes[DATES[i]] = 'maybe'; });
+      return votes;
+    }
+    return [
+      { id: 'sample-1', name: 'Alex', votes: pick([3, 4, 5, 11, 12, 18], [6, 19]) },
+      { id: 'sample-2', name: 'Sam', votes: pick([4, 5, 12, 13, 19, 26], [11]) },
+      { id: 'sample-3', name: 'Jo', votes: pick([1, 5, 8, 12, 15, 22], [4, 26]) }
+    ];
+  })();
+
+  function mockApi(method, payload) {
+    return new Promise(function (resolve) {
+      window.setTimeout(function () {
+        if (method === 'POST') {
+          var index = -1;
+          mockRows.forEach(function (row, i) { if (row.id === payload.id) index = i; });
+          if (payload.action === 'delete') {
+            if (index >= 0) mockRows.splice(index, 1);
+          } else {
+            var row = { id: payload.id, name: payload.name, votes: JSON.parse(JSON.stringify(payload.votes)) };
+            if (index >= 0) mockRows[index] = row; else mockRows.push(row);
+          }
+        }
+        resolve({
+          ok: true,
+          responses: mockRows.map(function (row) {
+            var item = { name: row.name, votes: row.votes };
+            if (row.id === myId) item.mine = true;
+            return item;
+          })
+        });
+      }, 150);
+    });
+  }
+
+  function api(method, payload) {
+    if (!LIVE) return mockApi(method, payload);
+    var request;
+    if (method === 'GET') {
+      request = fetch(CONFIG.API_URL + '?id=' + encodeURIComponent(myId) + '&t=' + Date.now(), { redirect: 'follow' });
+    } else {
+      // text/plain keeps this a "simple" request, which is what Apps Script web apps accept.
+      request = fetch(CONFIG.API_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    }
+    return request.then(function (response) {
+      if (!response.ok) throw new Error('The server answered with an error (' + response.status + ').');
+      return response.json();
+    }).then(function (data) {
+      if (!data || data.ok !== true || !Array.isArray(data.responses)) {
+        throw new Error(data && data.error ? data.error : 'Unexpected answer from the server.');
+      }
+      return data;
+    });
+  }
+
+  /* ---------- calendars ---------- */
+
+  function buildCalendar(container, cells, className, onClick) {
+    container.textContent = '';
+    var offset = (FIRST.dow + 6) % 7;             // weeks start on Monday
+    for (var i = 0; i < offset; i++) {
+      var pad = el('span');
+      pad.setAttribute('aria-hidden', 'true');
+      container.appendChild(pad);
+    }
+    DATES.forEach(function (iso) {
+      var d = INFO[iso];
+      var button = el('button', 'day ' + className + (d.dow === 0 || d.dow === 6 ? ' weekend' : ''));
+      button.type = 'button';
+      button.setAttribute('data-date', iso);
+      button.appendChild(el('span', 'wd', d.wd));
+      button.appendChild(el('span', 'num', d.day));
+      if (!ONE_MONTH) button.appendChild(el('span', 'mon', d.mon));
+      button.appendChild(el('span', 'tag', ''));
+      button.addEventListener('click', function () { onClick(iso); });
+      cells[iso] = button;
+      container.appendChild(button);
+    });
+  }
+
+  function paintVoteCell(iso) {
+    var button = voteCells[iso];
+    var value = myVotes[iso];
+    button.classList.toggle('yes', value === 'yes');
+    button.classList.toggle('maybe', value === 'maybe');
+    button.querySelector('.tag').textContent = value || '';
+    button.setAttribute('aria-pressed', value === 'yes' ? 'true' : value === 'maybe' ? 'mixed' : 'false');
+    button.setAttribute('aria-label', INFO[iso].long + ': ' +
+      (value === 'yes' ? 'free' : value === 'maybe' ? 'maybe' : 'not selected'));
+  }
+
+  function paintVotes() { DATES.forEach(paintVoteCell); }
+
+  function onVoteClick(iso) {
+    if (busy) return;
+    var value = myVotes[iso];
+    if (!value) myVotes[iso] = 'yes';
+    else if (value === 'yes') myVotes[iso] = 'maybe';
+    else delete myVotes[iso];
+    dirty = true;
+    paintVoteCell(iso);
+    setStatus('Not saved yet. Press “' + $('save').textContent + '” when you are done.', 'warn');
+  }
+
+  /* ---------- results ---------- */
+
+  function tally() {
+    var t = {};
+    DATES.forEach(function (iso) { t[iso] = { yes: [], maybe: [] }; });
+    responses.forEach(function (r) {
+      DATES.forEach(function (iso) {
+        var value = r.votes ? r.votes[iso] : null;
+        if (value === 'yes') t[iso].yes.push(r.name);
+        else if (value === 'maybe') t[iso].maybe.push(r.name);
+      });
+    });
+    return t;
+  }
+
+  function ranking(t) {
+    return DATES.filter(function (iso) {
+      return t[iso].yes.length + t[iso].maybe.length > 0;
+    }).sort(function (a, b) {
+      return t[b].yes.length - t[a].yes.length ||
+             t[b].maybe.length - t[a].maybe.length ||
+             (a < b ? -1 : 1);
+    });
+  }
+
+  function summary(entry) {
+    var parts = [];
+    if (entry.yes.length) parts.push(entry.yes.length + ' free');
+    if (entry.maybe.length) parts.push(entry.maybe.length + ' maybe');
+    return parts.join(' · ');
+  }
+
+  function paintResults() {
+    var t = tally();
+    var rank = ranking(t);
+    var n = responses.length;
+
+    $('count').textContent = n === 0 ? 'No answers yet. Be the first!' :
+      people(n) + (n === 1 ? ' has' : ' have') + ' answered.';
+    $('res-body').hidden = false;
+
+    // Best dates
+    var top = $('top');
+    top.textContent = '';
+    rank.slice(0, 3).forEach(function (iso) {
+      var item = el('li');
+      var button = el('button');
+      button.type = 'button';
+      button.appendChild(el('span', 'when', INFO[iso].short));
+      button.appendChild(el('span', 'who', summary(t[iso])));
+      button.addEventListener('click', function () { select(iso); });
+      item.appendChild(button);
+      top.appendChild(item);
+    });
+    $('top-wrap').hidden = rank.length === 0;
+
+    // Heat map
+    var maxYes = 0;
+    DATES.forEach(function (iso) { maxYes = Math.max(maxYes, t[iso].yes.length); });
+    var best = {};
+    if (rank.length) {
+      var lead = t[rank[0]];
+      rank.forEach(function (iso) {
+        if (t[iso].yes.length === lead.yes.length && t[iso].maybe.length === lead.maybe.length) best[iso] = true;
+      });
+    }
+    DATES.forEach(function (iso) {
+      var button = resCells[iso];
+      var yes = t[iso].yes.length;
+      var maybe = t[iso].maybe.length;
+      var heat = maxYes ? yes / maxYes : 0;
+      button.style.setProperty('--heat', (heat * 0.92).toFixed(2));
+      button.classList.toggle('hot', heat >= 0.55);
+      button.classList.toggle('best', best[iso] === true);
+      button.querySelector('.tag').textContent = (yes ? String(yes) : '') + (maybe ? '+' + maybe : '');
+      button.setAttribute('aria-label', INFO[iso].long + ': ' + yes + ' free, ' + maybe + ' maybe');
+    });
+
+    if (!selected || !t[selected]) selected = null;
+    if (!selected && rank.length) selected = rank[0];
+    paintDetail(t);
+
+    $('people').textContent = n ? 'Answered so far: ' +
+      responses.map(function (r) { return r.name; }).join(', ') + '.' : '';
+  }
+
+  function paintDetail(t) {
+    var box = $('detail');
+    box.textContent = '';
+    DATES.forEach(function (iso) {
+      resCells[iso].classList.toggle('sel', iso === selected);
+      resCells[iso].setAttribute('aria-pressed', iso === selected ? 'true' : 'false');
+    });
+    if (!selected) {
+      box.appendChild(el('p', null, 'Tap a date above to see who is free.'));
+      return;
+    }
+    var entry = (t || tally())[selected];
+    box.appendChild(el('h3', null, INFO[selected].long));
+    if (!entry.yes.length && !entry.maybe.length) {
+      box.appendChild(el('p', null, 'Nobody has picked this date yet.'));
+      return;
+    }
+    [['Free', entry.yes], ['Maybe', entry.maybe]].forEach(function (pair) {
+      if (!pair[1].length) return;
+      var line = el('p');
+      line.appendChild(el('strong', null, pair[0] + ' (' + pair[1].length + '): '));
+      line.appendChild(document.createTextNode(pair[1].join(', ')));
+      box.appendChild(line);
+    });
+  }
+
+  function select(iso) {
+    selected = iso;
+    paintDetail();
+  }
+
+  /* ---------- actions ---------- */
+
+  function setStatus(text, kind) {
+    var node = $('status');
+    node.textContent = text || '';
+    node.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function setBusy(value) {
+    busy = value;
+    $('save').disabled = value;
+    $('remove').disabled = value;
+  }
+
+  function paintButtons() {
+    $('save').textContent = hasSaved ? 'Update my answers' : 'Save my answers';
+    $('remove').hidden = !hasSaved;
+  }
+
+  function applyResponses(list) {
+    responses = list;
+    loaded = true;
+    $('retry').hidden = true;
+    paintResults();
+  }
+
+  function load() {
+    $('count').textContent = 'Loading answers…';
+    $('retry').hidden = true;
+    return api('GET').then(function (data) {
+      var mine = null;
+      data.responses.forEach(function (r) { if (r.mine) mine = r; });
+      if (mine) {
+        hasSaved = true;
+        if (!dirty) {
+          myVotes = {};
+          DATES.forEach(function (iso) {
+            if (mine.votes[iso] === 'yes' || mine.votes[iso] === 'maybe') myVotes[iso] = mine.votes[iso];
+          });
+          if (!cleanName($('name').value)) $('name').value = mine.name;
+          paintVotes();
+        }
+      }
+      paintButtons();
+      applyResponses(data.responses);
+    }).catch(function () {
+      $('count').textContent = 'Could not load the answers. Check your connection.';
+      $('retry').hidden = false;
+    });
+  }
+
+  function save() {
+    if (busy) return;
+    var name = cleanName($('name').value);
+    if (!name) {
+      setStatus('Please enter your name first.', 'error');
+      $('name').focus();
+      return;
+    }
+    if (!hasSaved && loaded) {
+      var taken = responses.some(function (r) {
+        return !r.mine && r.name.toLowerCase() === name.toLowerCase();
+      });
+      if (taken && !window.confirm('Someone called “' + name + '” has already answered.\n\n' +
+          'If that was you on another device, your answers would be counted twice.\n' +
+          'Save a new answer with this name anyway?')) {
+        return;
+      }
+    }
+    var votes = {};
+    DATES.forEach(function (iso) { if (myVotes[iso]) votes[iso] = myVotes[iso]; });
+
+    setBusy(true);
+    setStatus('Saving…');
+    api('POST', { action: 'save', id: myId, name: name, votes: votes }).then(function (data) {
+      dirty = false;
+      hasSaved = true;
+      store.set(CONFIG.KEY + ':name', name);
+      paintButtons();
+      applyResponses(data.responses);
+      var count = Object.keys(votes).length;
+      setStatus('Saved, thank you ' + name + '! ' +
+        (count ? 'You picked ' + count + (count === 1 ? ' date. ' : ' dates. ') : 'You picked no dates. ') +
+        'To change your answers, open this link again in the same browser.', 'ok');
+    }).catch(function (error) {
+      setStatus('Could not save: ' + (error && error.message ? error.message : 'unknown error') +
+        ' Please try again.', 'error');
+    }).then(function () { setBusy(false); });
+  }
+
+  function removeMine() {
+    if (busy || !hasSaved) return;
+    if (!window.confirm('Remove your answers from the poll?')) return;
+    setBusy(true);
+    setStatus('Removing…');
+    api('POST', { action: 'delete', id: myId }).then(function (data) {
+      myVotes = {};
+      dirty = false;
+      hasSaved = false;
+      paintVotes();
+      paintButtons();
+      applyResponses(data.responses);
+      setStatus('Your answers have been removed.', 'ok');
+    }).catch(function (error) {
+      setStatus('Could not remove: ' + (error && error.message ? error.message : 'unknown error') +
+        ' Please try again.', 'error');
+    }).then(function () { setBusy(false); });
+  }
+
+  /* ---------- start ---------- */
+
+  var rangeText = ONE_MONTH
+    ? FIRST.day + ' – ' + LAST.day + ' ' + LAST.monLong + ' ' + LAST.year
+    : FIRST.day + ' ' + FIRST.mon + ' – ' + LAST.day + ' ' + LAST.mon + ' ' + LAST.year;
+  var monthText = ONE_MONTH ? FIRST.monLong + ' ' + FIRST.year : rangeText;
+  $('range').textContent = rangeText;
+  $('vote-month').textContent = monthText;
+  $('res-month').textContent = monthText;
+  $('demo').hidden = LIVE;
+
+  buildCalendar($('vote-cal'), voteCells, 'vote', onVoteClick);
+  buildCalendar($('res-cal'), resCells, 'res', select);
+  paintVotes();
+
+  var savedName = store.get(CONFIG.KEY + ':name');
+  if (savedName) $('name').value = savedName;
+
+  $('save').addEventListener('click', save);
+  $('remove').addEventListener('click', removeMine);
+  $('retry').addEventListener('click', load);
+  $('name').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') save();
+  });
+  window.addEventListener('beforeunload', function (event) {
+    if (!dirty) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
